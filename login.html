@@ -36,6 +36,9 @@ a {color:#b71c1c; text-decoration:none; text-align:center; display:block; margin
   <a href="signup.html">Not a member? Sign Up</a>
 </form>
 
+<!-- bcryptjs CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -54,25 +57,39 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const loginForm = document.getElementById('loginForm');
+
 loginForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const phone = loginForm.querySelector('input[placeholder="Phone Number"]').value.trim();
   const password = loginForm.querySelector('input[placeholder="Password"]').value;
 
   try {
-    const q = query(collection(db,'donors'), where("phone","==",phone), where("password","==",password));
+    // Fetch user by phone
+    const q = query(collection(db,'donors'), where("phone","==",phone));
     const snapshot = await getDocs(q);
+
     if(snapshot.empty){
       alert("Invalid phone or password!");
       return;
     }
-    // Save session
+
+    let loggedIn = false;
     snapshot.forEach(doc => {
-      localStorage.setItem('donorId', doc.id);
-      localStorage.setItem('donorPhone', phone);
-      localStorage.setItem('donorName', doc.data().name);
+      const data = doc.data();
+      if(dcodeIO.bcrypt.compareSync(password, data.password)){
+        // Password matched
+        localStorage.setItem('donorId', doc.id);
+        localStorage.setItem('donorPhone', phone);
+        localStorage.setItem('donorName', data.name);
+        loggedIn = true;
+      }
     });
-    window.location.href = "index.html"; // redirect to index.html
+
+    if(loggedIn){
+      window.location.href = "index.html"; // redirect to home
+    } else {
+      alert("Invalid phone or password!");
+    }
   } catch(err){
     alert("Error: "+err.message);
   }
