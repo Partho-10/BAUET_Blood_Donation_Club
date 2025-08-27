@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Join BAUET Donation Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif;}
+body {background:#f9f9f9; color:#333; line-height:1.6;}
+header {
+  background:#b71c1c; color:white; padding:15px 20px; display:flex; align-items:center;
+}
+header img { height:40px; margin-right:10px; }
+header h1 { font-size:1.4em; }
+form {max-width:500px; margin:40px auto; background:white; padding:25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:15px;}
+input, select, textarea {padding:12px; border:1px solid #ccc; border-radius:5px;}
+input:focus, select:focus, textarea:focus {border-color:#b71c1c; outline:none; box-shadow:0 0 5px rgba(183,28,28,0.3);}
+button.submit-btn {background:#b71c1c; color:white; padding:12px; border:none; cursor:pointer; border-radius:5px; transition:0.3s;}
+button.submit-btn:hover {background:#d32f2f;}
+a {color:#b71c1c; text-decoration:none; text-align:center; display:block; margin-top:10px;}
+label {font-weight:500;}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="bauet-logo2.png" alt="BAUET Logo">
+  <h1>Join BAUET Donation Club</h1>
+</header>
+
+<form id="donorForm">
+  <input type="text" placeholder="Full Name" required>
+  <input type="tel" placeholder="Phone Number" required>
+  <input type="email" placeholder="Email Address" required>
+  <input type="password" placeholder="Password" required>
+  <input type="number" placeholder="Age" min="18" max="65" required>
+  <input type="number" placeholder="Weight (kg)" min="50" required>
+  <select required>
+    <option value="" disabled selected>Select Blood Group</option>
+    <option value="O+">O+</option><option value="A+">A+</option>
+    <option value="B+">B+</option><option value="AB+">AB+</option>
+    <option value="O-">O-</option><option value="A-">A-</option>
+    <option value="B-">B-</option><option value="AB-">AB-</option>
+  </select>
+  <textarea placeholder="Any health concerns?" rows="3"></textarea>
+  <label for="lastDonation">Last Donation Date (optional)</label>
+  <input type="date" id="lastDonation" placeholder="Last Donation Date">
+  <button type="submit" class="submit-btn">Sign Up</button>
+  <a href="login.html">Already a member? Login</a>
+</form>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBW_djVZ30D4OLNrh6NiM36lfLoHazb2Zs",
+  authDomain: "blood-donation-a9110.firebaseapp.com",
+  projectId: "blood-donation-a9110",
+  storageBucket: "blood-donation-a9110.firebasestorage.app",
+  messagingSenderId: "210402518590",
+  appId: "1:210402518590:web:ee261e7013737c0dfc536f",
+  measurementId: "G-T6JDSPGCR0"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const donorForm = document.getElementById('donorForm');
+donorForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+
+  const name = donorForm.querySelector('input[placeholder="Full Name"]').value.trim();
+  const phone = donorForm.querySelector('input[placeholder="Phone Number"]').value.trim();
+  const email = donorForm.querySelector('input[placeholder="Email Address"]').value.trim().toLowerCase();
+  const password = donorForm.querySelector('input[placeholder="Password"]').value;
+  const age = donorForm.querySelector('input[placeholder="Age"]').value;
+  const weight = donorForm.querySelector('input[placeholder="Weight (kg)"]').value;
+  const bloodGroup = donorForm.querySelector('select').value;
+  const health = donorForm.querySelector('textarea').value.trim();
+  const lastDonationInput = donorForm.querySelector('input[type="date"]').value;
+  const lastDonation = lastDonationInput ? lastDonationInput : null;
+
+  try {
+    // Check existing user by email or phone
+    const q1 = query(collection(db,'donors'), where("email","==",email));
+    const q2 = query(collection(db,'donors'), where("phone","==",phone));
+    const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+    if(!s1.empty || !s2.empty){ 
+      alert('You are already a member!'); 
+      return; 
+    }
+
+    await addDoc(collection(db,'donors'), {
+      name, phone, email, password,
+      age: parseInt(age), weight: parseInt(weight),
+      bloodGroup, healthConcerns: health,
+      lastDonation,
+      timestamp: serverTimestamp()
+    });
+
+    alert('Thank you for joining! Please login now.');
+    donorForm.reset();
+    window.location.href = 'login.html';
+  } catch(err){
+    alert('Error: '+err.message);
+  }
+});
+</script>
+</body>
+</html>

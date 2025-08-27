@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Profile - BAUET Donation Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif;}
+body {background:#f9f9f9; color:#333; line-height:1.6;}
+header {background:#b71c1c; color:white; padding:15px 20px; display:flex; align-items:center; justify-content:space-between;}
+header img { height:40px; margin-right:10px; }
+header h1 { font-size:1.4em; }
+.profile-container {max-width:900px; margin:30px auto; display:grid; grid-template-columns:1fr 1fr; gap:30px;}
+.profile-box, .edit-box {background:white; padding:20px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+.profile-box h3 {margin-bottom:10px; color:#b71c1c;}
+input, textarea, select, button {padding:10px; border:1px solid #ccc; border-radius:5px; font-size:1em; width:100%;}
+input:focus, textarea:focus, select:focus {border-color:#b71c1c; outline:none; box-shadow:0 0 5px rgba(183,28,28,0.3);}
+button.submit-btn {background:#b71c1c; color:white; border:none; cursor:pointer; transition:0.3s;}
+button.submit-btn:hover {background:#d32f2f;}
+#logoutBtn {
+  background:#555;
+  color:white;
+  padding:5px 12px;        /* choto padding */
+  border-radius:5px;
+  transition:0.3s;
+  width:auto;              /* button lamba na hobe */
+  margin-left:auto;        /* flex use kore right e shift */
+  height:fit-content;      /* lamba hobe na */
+  font-size:0.9em;         /* text choto */
+  border:none;
+}
+#logoutBtn:hover {background:#222;}
+.back-btn {
+  display:inline-block;
+  margin:20px auto 0 auto;
+  padding:5px 12px;
+  background:#b71c1c;
+  color:white;
+  border-radius:5px;
+  text-decoration:none;
+  text-align:center;
+  transition:0.3s;
+}
+.back-btn:hover {background:#d32f2f;}
+@media(max-width:768px){ .profile-container{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; align-items:center;">
+    <img src="bauet-logo2.png" alt="BAUET Logo">
+    <h1>My Profile</h1>
+  </div>
+  <button id="logoutBtn">Logout</button>
+</header>
+
+<div class="profile-container">
+  <!-- Left: Profile Info -->
+  <div class="profile-box" id="profileInfo">
+    <!-- Filled dynamically -->
+  </div>
+
+  <!-- Right: Edit Profile & Last Donation -->
+  <div class="edit-box">
+    <h3>Update Last Donation Date</h3>
+    <input type="date" id="donationDate">
+    <button id="updateDonation" class="submit-btn">Update</button>
+
+    <h3 style="margin-top:20px;">Edit Profile</h3>
+    <form id="editProfileForm">
+      <input type="text" id="editName" placeholder="Full Name" required>
+      <input type="number" id="editAge" placeholder="Age" min="18" max="65" required>
+      <input type="number" id="editWeight" placeholder="Weight (kg)" min="30" required>
+      <select id="editBloodGroup" required>
+        <option value="" disabled selected>Select Blood Group</option>
+        <option value="O+">O+</option><option value="A+">A+</option>
+        <option value="B+">B+</option><option value="AB+">AB+</option>
+        <option value="O-">O-</option><option value="A-">A-</option>
+        <option value="B-">B-</option><option value="AB-">AB-</option>
+      </select>
+      <textarea id="editHealth" placeholder="Any health concerns?" rows="3"></textarea>
+      <button type="submit" class="submit-btn" style="margin-top:10px;">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<!-- Back Button -->
+<div style="text-align:center;">
+  <a href="index.html" class="back-btn">&#8592; Back</a>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBW_djVZ30D4OLNrh6NiM36lfLoHazb2Zs",
+  authDomain: "blood-donation-a9110.firebaseapp.com",
+  projectId: "blood-donation-a9110",
+  storageBucket: "blood-donation-a9110.firebasestorage.app",
+  messagingSenderId: "210402518590",
+  appId: "1:210402518590:web:ee261e7013737c0dfc536f",
+  measurementId: "G-T6JDSPGCR0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const profileInfo = document.getElementById('profileInfo');
+const logoutBtn = document.getElementById('logoutBtn');
+const donationDate = document.getElementById('donationDate');
+const updateDonationBtn = document.getElementById('updateDonation');
+const editProfileForm = document.getElementById('editProfileForm');
+
+let loggedInUserId = localStorage.getItem('donorId'); // MUST be Firestore document ID
+
+if(!loggedInUserId){
+  alert('Please login first!');
+  window.location.href = 'login.html';
+}
+
+async function loadProfile(){
+  try{
+    const userDocRef = doc(db, 'donors', loggedInUserId);
+    const docSnap = await getDoc(userDocRef);
+    if(!docSnap.exists()){
+      alert('User not found!');
+      localStorage.clear();
+      window.location.href = 'login.html';
+      return;
+    }
+    const data = docSnap.data();
+    profileInfo.innerHTML = `
+      <h3>${data.name}</h3>
+      <p><strong>Phone:</strong> ${data.phone}</p>
+      <p><strong>Email:</strong> ${data.email}</p>
+      <p><strong>Blood Group:</strong> ${data.bloodGroup}</p>
+      <p><strong>Last Donation:</strong> ${data.lastDonation || 'Not updated'}</p>
+    `;
+    // Prefill form
+    document.getElementById('editName').value = data.name;
+    document.getElementById('editAge').value = data.age ?? '';
+    document.getElementById('editWeight').value = data.weight ?? '';
+    document.getElementById('editBloodGroup').value = data.bloodGroup;
+    document.getElementById('editHealth').value = data.healthConcerns || '';
+  }catch(err){ alert('Error loading profile: '+err.message); }
+}
+
+loadProfile();
+
+// Logout
+logoutBtn.addEventListener('click', ()=>{
+  localStorage.clear();
+  alert('Logged out!');
+  window.location.href = 'login.html';
+});
+
+// Update Last Donation
+updateDonationBtn.addEventListener('click', async ()=>{
+  const date = donationDate.value;
+  if(!date){ alert('Please select a date'); return; }
+  try{
+    const userDocRef = doc(db, 'donors', loggedInUserId);
+    await updateDoc(userDocRef, { lastDonation: date });
+    alert('Last donation updated!');
+    loadProfile();
+  }catch(err){ alert('Error updating donation: '+err.message); }
+});
+
+// Edit Profile
+editProfileForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const name = document.getElementById('editName').value.trim();
+  const age = parseInt(document.getElementById('editAge').value);
+  const weight = parseInt(document.getElementById('editWeight').value);
+  const bloodGroup = document.getElementById('editBloodGroup').value;
+  const healthConcerns = document.getElementById('editHealth').value.trim();
+  try{
+    const userDocRef = doc(db, 'donors', loggedInUserId);
+    await updateDoc(userDocRef, { name, age, weight, bloodGroup, healthConcerns });
+    alert('Profile updated!');
+    loadProfile();
+  }catch(err){ alert('Error updating profile: '+err.message); }
+});
+</script>
+
+</body>
+</html>

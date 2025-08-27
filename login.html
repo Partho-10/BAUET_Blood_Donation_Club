@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Login - BAUET Donation Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif;}
+body {background:#f9f9f9; color:#333; line-height:1.6;}
+header {background:#b71c1c; color:white; padding:15px 20px; display:flex; align-items:center;}
+header img { height:40px; margin-right:10px; }
+header h1 { font-size:1.4em; }
+form {max-width:400px; margin:50px auto; background:white; padding:25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:15px;}
+input {padding:12px; border:1px solid #ccc; border-radius:5px;}
+input:focus {border-color:#b71c1c; outline:none; box-shadow:0 0 5px rgba(183,28,28,0.3);}
+button.submit-btn {background:#b71c1c; color:white; padding:12px; border:none; cursor:pointer; border-radius:5px; transition:0.3s;}
+button.submit-btn:hover {background:#d32f2f;}
+a {color:#b71c1c; text-decoration:none; text-align:center; display:block; margin-top:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="bauet-logo2.png" alt="BAUET Logo">
+  <h1>Member Login</h1>
+</header>
+
+<form id="loginForm">
+  <input type="tel" placeholder="Phone Number" required>
+  <input type="password" placeholder="Password" required>
+  <button type="submit" class="submit-btn">Login</button>
+  <a href="signup.html">Not a member? Sign Up</a>
+</form>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBW_djVZ30D4OLNrh6NiM36lfLoHazb2Zs",
+  authDomain: "blood-donation-a9110.firebaseapp.com",
+  projectId: "blood-donation-a9110",
+  storageBucket: "blood-donation-a9110.firebasestorage.app",
+  messagingSenderId: "210402518590",
+  appId: "1:210402518590:web:ee261e7013737c0dfc536f",
+  measurementId: "G-T6JDSPGCR0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const loginForm = document.getElementById('loginForm');
+loginForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const phone = loginForm.querySelector('input[placeholder="Phone Number"]').value.trim();
+  const password = loginForm.querySelector('input[placeholder="Password"]').value;
+
+  try {
+    const q = query(collection(db,'donors'), where("phone","==",phone), where("password","==",password));
+    const snapshot = await getDocs(q);
+    if(snapshot.empty){
+      alert("Invalid phone or password!");
+      return;
+    }
+    // Save session
+    snapshot.forEach(doc => {
+      localStorage.setItem('donorId', doc.id);
+      localStorage.setItem('donorPhone', phone);
+      localStorage.setItem('donorName', doc.data().name);
+    });
+    window.location.href = "index.html"; // redirect to index.html
+  } catch(err){
+    alert("Error: "+err.message);
+  }
+});
+</script>
+
+</body>
+</html>

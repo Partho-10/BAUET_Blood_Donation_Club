@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BAUET Blood Donation Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif;}
+html {scroll-behavior:smooth;}
+body {line-height:1.6; background:#f9f9f9; color:#333;}
+
+/* Header */
+header {
+  background:#b71c1c; color:white; padding:15px 20px;
+  position:sticky; top:0; z-index:1000; display:flex; justify-content:space-between; align-items:center;
+}
+header img { height:40px; width:auto; margin-right:10px; }
+header h1 { font-size:1.6em; margin:0; }
+.header-left { display:flex; align-items:center; }
+nav {display:flex; gap:15px;}
+nav a {color:white; text-decoration:none; font-weight:500; transition:0.3s;}
+nav a:hover {text-decoration:underline;}
+.menu-toggle {display:none; flex-direction:column; cursor:pointer;}
+.menu-toggle span {height:3px; width:25px; background:white; margin:4px 0; border-radius:2px; transition:0.3s;}
+@media(max-width:768px){
+  nav {display:none; flex-direction:column; background:#b71c1c; position:absolute; top:60px; right:0; width:220px; padding:15px; border-radius:5px;}
+  nav.show {display:flex;}
+  .menu-toggle {display:flex;}
+}
+
+/* Hero */
+.hero {
+  color:white; padding:100px 20px; text-align:center; min-height:90vh;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  background:linear-gradient(rgba(183,28,28,0.7), rgba(211,47,47,0.7)),
+  url('https://images.unsplash.com/photo-1596495577886-d920f1b4b45b?auto=format&fit=crop&w=1470&q=80') center/cover no-repeat;
+}
+.hero h2 {font-size:3em; margin-bottom:20px; text-shadow:1px 1px 6px rgba(0,0,0,0.5);}
+.hero p {font-size:1.2em; margin-bottom:30px; text-shadow:1px 1px 4px rgba(0,0,0,0.4);}
+
+/* Blood Filter Display */
+#bloodFilterSection {margin-top:20px; background:rgba(255,255,255,0.95); padding:15px 20px; border-radius:10px; color:#333;}
+#donorList {margin-top:10px;}
+.donor-cards {display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:15px;}
+.donor-card {background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+.donor-card h4 {color:#b71c1c; margin-bottom:8px;}
+.donor-card p {margin:4px 0; font-size:0.9em; color:#333;}
+
+/* Sections */
+section {padding:80px 20px; max-width:1200px; margin:0 auto;}
+section h2 {text-align:center; margin-bottom:40px; color:#b71c1c; font-family:'Nunito', sans-serif;}
+
+/* Cards */
+.cards {display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px;}
+.card {background:white; padding:20px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.1); transition:0.3s; text-align:center;}
+.card:hover {transform:translateY(-5px); box-shadow:0 6px 20px rgba(0,0,0,0.15);}
+.card h3 {margin-bottom:15px; color:#b71c1c; font-family:'Nunito', sans-serif;}
+.card p {font-size:0.95em; line-height:1.4;}
+
+/* Buttons */
+.btn {background:#b71c1c; color:white; padding:12px 25px; text-decoration:none; border-radius:50px; display:inline-block; margin-top:10px; transition:0.3s;}
+.btn:hover {background:#d32f2f; transform:scale(1.05);}
+
+/* Contact Form Styling */
+.contact-container {
+  max-width:600px;
+  margin:0 auto;
+  background:white;
+  padding:30px 25px;
+  border-radius:15px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.1);
+}
+.contact-container input,
+.contact-container textarea {
+  width:100%;
+  padding:12px;
+  margin-bottom:15px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:1em;
+}
+.contact-container input:focus,
+.contact-container textarea:focus {
+  border-color:#b71c1c;
+  outline:none;
+  box-shadow:0 0 6px rgba(183,28,28,0.2);
+}
+.contact-container .submit-btn {
+  background:#b71c1c;
+  color:white;
+  padding:12px;
+  border:none;
+  border-radius:50px;
+  cursor:pointer;
+  width:100%;
+  font-size:1em;
+  transition:0.3s;
+}
+.contact-container .submit-btn:hover {
+  background:#d32f2f;
+  transform:scale(1.02);
+}
+
+/* Sidebar */
+#sidebar {
+  position:fixed;
+  top:60px;
+  left:0;
+  width:240px;
+  background:#fff;
+  padding:20px;
+  border-right:1px solid #ddd;
+  display:flex;
+  flex-direction:column;
+  z-index:1000;
+  box-shadow:2px 0 20px rgba(0,0,0,0.2);
+  transform:translateX(-220px);
+  transition: transform 0.3s ease, width 0.3s ease;
+  border-radius:0 10px 10px 0;
+}
+#sidebar.show { transform: translateX(0); }
+
+/* Fixed height user info to avoid scrolling */
+#sidebar .user-info {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:25px;
+  font-size:1.1em;
+  min-height:50px; /* fixed height */
+  padding:0 15px;
+}
+#sidebar .user-info span { font-weight:700; color:#b71c1c; font-size:1.2em; }
+#sidebar .user-info button { background:none; border:none; cursor:pointer; color:#b71c1c; font-size:1.4em; }
+#sidebar ul {list-style:none; padding:0;}
+#sidebar ul li {margin-bottom:18px;}
+#sidebar ul li a {color:#333; text-decoration:none; display:block; padding:10px 12px; border-radius:8px; font-size:1.1em; font-weight:500; transition:0.2s;}
+#sidebar ul li a:hover {background:#b71c1c; color:white; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+
+/* Sidebar toggle button (compact 3 dot) */
+#sidebarToggleBtn {
+  position:fixed;
+  top:90px;
+  left:0;
+  z-index:1100;
+  background:#b71c1c;
+  color:white;
+  border:none;
+  padding:10px 12px;
+  border-radius:0 5px 5px 0;
+  cursor:pointer;
+  font-size:1.4em;
+}
+
+/* Footer */
+/* Footer */
+footer {background:#333; color:white; padding:40px 20px; text-align:center;}
+footer a {color:white; margin:0 10px; text-decoration:none;}
+footer p {margin-top:20px; font-size:0.9em;}
+
+/* Floating Join Button */
+.donate-btn {
+  position:fixed;
+  bottom:90px; /* above footer */
+  right:30px;
+  background:#ff1744;
+  color:white;
+  padding:15px 25px;
+  border-radius:50px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.3);
+  z-index:999;
+  transition:0.3s;
+  text-decoration:none;
+}
+.donate-btn:hover {background:#f50057; transform:scale(1.05);}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="user-info">
+    <span id="userName">User</span>
+    <button id="logoutBtnSidebar">&#x1F511;</button>
+  </div>
+  <ul>
+    <li><a href="#" id="profileLink">Profile</a></li>
+  </ul>
+</div>
+<button id="sidebarToggleBtn">&#x22EE;</button>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <img src="bauet-logo2.png" alt="BAUET Logo">
+    <h1>BAUET Blood Donation Club</h1>
+  </div>
+  <div class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
+  <nav id="navbar">
+    <a href="#home">Home</a>
+    <a href="#about">About</a>
+    <a href="#donor">Donor Info</a>
+    <a href="#drives">Events</a>
+    <a href="#volunteer">Volunteer</a>
+    <a href="#contact">Contact</a>
+    <a href="signup.html" id="joinBtn">Join Club</a>
+    <a href="login.html" id="loginBtn">Login</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <h2>Join BAUET Blood Donation Club</h2>
+  <p>Be part of student-led events & save lives through donations!</p>
+
+  <!-- Blood Group Filter -->
+  <div id="bloodFilterSection">
+    <label for="bloodFilter">Show donors by blood group: </label>
+    <select id="bloodFilter">
+      <option value="">Select</option>
+      <option value="O+">O+</option>
+      <option value="A+">A+</option>
+      <option value="B+">B+</option>
+      <option value="AB+">AB+</option>
+      <option value="O-">O-</option>
+      <option value="A-">A-</option>
+      <option value="B-">B-</option>
+      <option value="AB-">AB-</option>
+    </select>
+    <div id="donorList"></div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+<h2>About Us</h2>
+<p style="text-align:center;max-width:800px;margin:0 auto;">We are BAUET students organizing donation events, awareness campaigns & community activities across campus. Join us to make donation accessible and fun!</p>
+</section>
+
+<!-- Donor Guidelines -->
+<section id="donor">
+<h2>Donor Guidelines</h2>
+<div class="cards">
+  <div class="card"><h3>Healthy Students</h3><p>Ensure you are healthy and ready to donate at campus events.</p></div>
+  <div class="card"><h3>Age & Weight</h3><p>18+ years old and minimum 50 kg (BAUET students preferred).</p></div>
+  <div class="card"><h3>Recent Illness</h3><p>No recent fever or illness. Check with the team if unsure.</p></div>
+</div>
+</section>
+
+<!-- Events -->
+<section id="drives">
+<h2>Upcoming Events</h2>
+<div class="cards">
+  <div class="card"><h3>Campus Donation Drive</h3><p>Sep 10, 2025 | 10:00 AM - 4:00 PM</p><a href="#" class="btn">Join Event</a></div>
+  <div class="card"><h3>Awareness Campaign</h3><p>Sep 20, 2025 | 2:00 PM - 5:00 PM</p><a href="#" class="btn">Join Event</a></div>
+</div>
+</section>
+
+<!-- Volunteer -->
+<section id="volunteer">
+<h2>Become a Volunteer</h2>
+<p style="text-align:center;max-width:800px;margin:0 auto;">Volunteers help organize events, manage registrations & engage fellow students in donation initiatives.</p>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+<h2>Contact Us</h2>
+<div class="contact-container">
+  <form id="contactForm">
+    <input type="text" placeholder="Your Name" required>
+    <input type="email" placeholder="Your Email" required>
+    <textarea placeholder="Your Message" rows="5" required></textarea>
+    <button type="submit" class="submit-btn">Send Message</button>
+  </form>
+</div>
+</section>
+
+<!-- Footer -->
+<footer>
+<p>Contact Us: bauetdonationclub@gmail.com | +880 123 456 789</p>
+<div><a href="#">Facebook</a> | <a href="#">Twitter</a> | <a href="#">Instagram</a></div>
+<p>© 2025 BAUET Donation Club. All rights reserved.</p>
+</footer>
+
+<!-- Floating Join Button -->
+<a href="signup.html" class="donate-btn">Join Club</a>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBW_djVZ30D4OLNrh6NiM36lfLoHazb2Zs",
+  authDomain: "blood-donation-a9110.firebaseapp.com",
+  projectId: "blood-donation-a9110",
+  storageBucket: "blood-donation-a9110.firebasestorage.app",
+  messagingSenderId: "210402518590",
+  appId: "1:210402518590:web:ee261e7013737c0dfc536f",
+  measurementId: "G-T6JDSPGCR0"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Blood Filter
+const bloodFilter = document.getElementById('bloodFilter');
+const donorList = document.getElementById('donorList');
+bloodFilter.addEventListener('change', async ()=>{
+  const bg = bloodFilter.value;
+  donorList.innerHTML = 'Loading...';
+  if(!bg){ donorList.innerHTML=''; return; }
+  try{
+    const snapshot = await getDocs(collection(db,'donors'));
+    let html = `<div class="donor-cards">`;
+    snapshot.forEach(d=>{
+      const data = d.data();
+      if(data.bloodGroup === bg){
+        html += `
+          <div class="donor-card">
+            <h4>${data.name}</h4>
+            <p><strong>Phone:</strong> ${data.phone}</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Last Donation:</strong> ${data.lastDonation ? data.lastDonation : 'N/A'}</p>
+          </div>
+        `;
+      }
+    });
+    html += `</div>`;
+    donorList.innerHTML = html;
+  }catch(err){ donorList.innerHTML = 'Error fetching donors: '+err.message; }
+});
+
+// Sidebar + login
+const sidebar = document.getElementById('sidebar');
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+const logoutBtnSidebar = document.getElementById('logoutBtnSidebar');
+const profileLink = document.getElementById('profileLink');
+const userNameSpan = document.getElementById('userName');
+const loginBtn = document.getElementById('loginBtn');
+const joinBtn = document.getElementById('joinBtn');
+const donateBtn = document.querySelector('.donate-btn');
+
+let loggedInUser = localStorage.getItem('donorName');
+updateUI();
+
+function updateUI(){
+  if(loggedInUser){
+    sidebar.classList.add('show');
+    userNameSpan.textContent = loggedInUser;
+    loginBtn.style.display = 'none';
+    joinBtn.style.display = 'none';
+  } else {
+    sidebar.classList.remove('show');
+    userNameSpan.textContent = 'User';
+    loginBtn.style.display = 'inline';
+    joinBtn.style.display = 'inline';
+  }
+}
+
+// Sidebar toggle
+sidebarToggleBtn.addEventListener('click', ()=> sidebar.classList.toggle('show'));
+
+// Logout
+logoutBtnSidebar.addEventListener('click', ()=>{
+  localStorage.clear();
+  loggedInUser = null; // << update here
+  alert('Logged out!');
+  updateUI();
+});
+
+// Profile click
+profileLink.addEventListener('click', (e)=>{
+  if(loggedInUser){
+    window.location.href = 'profile.html';
+  } else {
+    e.preventDefault();
+    alert('Please login first!');
+  }
+});
+
+// Mobile navbar toggle
+const menuToggle = document.getElementById('menu-toggle');
+const navbar = document.getElementById('navbar');
+menuToggle.addEventListener('click', ()=>{
+  navbar.classList.toggle('show');
+});
+
+// Join Club logic
+joinBtn.addEventListener('click', (e)=>{
+  if(loggedInUser){
+    e.preventDefault();
+    alert('You have already joined the club!');
+  }
+});
+donateBtn.addEventListener('click', (e)=>{
+  if(loggedInUser){
+    e.preventDefault();
+    alert('You have already joined the club!');
+  }
+});
+</script>
+
+</body>
+</html>
+
