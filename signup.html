@@ -53,6 +53,7 @@ label {font-weight:500;}
   <a href="login.html">Already a member? Login</a>
 </form>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -94,8 +95,12 @@ donorForm.addEventListener('submit', async (e)=>{
       return; 
     }
 
+    // Hash password before storing
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
     await addDoc(collection(db,'donors'), {
-      name, phone, email, password,
+      name, phone, email, password: hashedPassword,
       age: parseInt(age), weight: parseInt(weight),
       bloodGroup, healthConcerns: health,
       lastDonation,
@@ -110,5 +115,6 @@ donorForm.addEventListener('submit', async (e)=>{
   }
 });
 </script>
+
 </body>
 </html>
